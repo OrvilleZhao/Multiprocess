@@ -9,14 +9,7 @@ package multiprocess;
  *
  * @author Administrator
  */
-class Ticket{
-    long tid;//车票编号
-    String passenger;//乘客姓名
-    int route;//列车车次
-    int coach;//车厢
-    int departure;//出发站编号
-    int arrival;//到达站编号
-}
+
 public class Train {
     
 }
