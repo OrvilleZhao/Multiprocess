@@ -137,6 +137,21 @@ class Seat{
         }
         return count;
     }
+
+    boolean cancel(Ticket ticket) {
+        try{
+            long id=ticket.tid;
+            while(CL[ticket.route][ticket.coach][ticket.seat].Lock()){}
+             for(int i=ticket.departure;i<ticket.arrival;i++){
+                 seat[ticket.route][ticket.coach][ticket.seat][i].unSet();
+             }
+        }catch(Exception ex){
+            return false;
+        }finally{
+            CL[ticket.route][ticket.coach][ticket.seat].unLock();
+        }
+        return true;
+    }
 }
 
 public class TicketingDS implements TicketingSystem {
@@ -145,6 +160,7 @@ public class TicketingDS implements TicketingSystem {
     private final int seatnum;
     private final int stationnum;
     private final Seat seat;
+    private ArrayList history=new ArrayList();
     public TicketingDS(int routenum,int coachnum,int seatnum,int stationnum){
         this.routenum=routenum;
         this.coachnum=coachnum;
@@ -162,12 +178,13 @@ public class TicketingDS implements TicketingSystem {
             if(k!=-1){
                 Ticket t=new Ticket();
                 t.passenger=passenger;
-                t.tid=123;
+                t.tid=System.currentTimeMillis();
                 t.arrival=arrival;
                 t.departure=departure;
                 t.coach=i;
                 t.route=route;
                 t.seat=k;
+                history.add(t.tid);
                 return t;
             }
          }
@@ -186,8 +203,12 @@ public class TicketingDS implements TicketingSystem {
 
     @Override
     public boolean refundTicket(Ticket ticket) {
-        
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
+        if(history.contains(ticket.tid))
+            if(seat.cancel(ticket))
+                return true;
+            else
+              return false;
+        else
+            return false;
+    } 
 }
