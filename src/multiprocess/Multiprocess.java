@@ -6,6 +6,7 @@
 package multiprocess;
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  *
  * @author Administrator
@@ -19,10 +20,10 @@ public class Multiprocess{
     private static int coach=8;
     private static int seat=100;
     private static int station=10;
-    private static ArrayList History=new ArrayList();
+    private static ConcurrentLinkedQueue History=new ConcurrentLinkedQueue();
     public static void main(String[] args) {
       final TicketingDS tds=new TicketingDS(route,coach,seat,station);
-      int i=64;
+      int i=8000;
       while(i-->0){
       double chance=Math.random();
       if(chance>0.7&&chance<1)
@@ -33,7 +34,7 @@ public class Multiprocess{
             int s1=random(1,station-1);
             int s2=random(s1+1,station);
             Ticket k=tds.buyTicket("hhhh",r-1,s1-1,s2-1);
-            History.add(k);
+            History.offer(k);
             if(k!=null){
                 System.out.println("成功订票:票的信息为:乘客姓名:"+k.passenger+" 车票编号:"+k.tid+" 列车车次:"+r+" 车厢编号:"+(k.coach+1)+" 座位号:"+(k.seat+1)+" 出发站编号:"+(k.departure+1)+" 终点站编号:"+(k.arrival+1));
             }
@@ -63,14 +64,14 @@ public class Multiprocess{
            new Thread(new Runnable(){
           @Override
           public void run() {
-              int k=random(0,History.size()-1); 
-              Ticket t=(Ticket)History.get(k);
-              if(tds.refundTicket(t)){
-                System.out.println("您订购的编号为:"+t.tid+"的车票已经退订！");
-              }else{
-                  System.out.println("错误的车票编号，请查询后再订购！");
+              Ticket t=(Ticket)History.poll();
+              if(t!=null){
+                    if(tds.refundTicket(t)){
+                      System.out.println("您订购的编号为:"+t.tid+"的车票已经退订！");
+                    }else{
+                        System.out.println("错误的车票编号，请查询后再退订！");
+                    }
               }
-              History.remove(k);
           }         
          }).start();
      }
