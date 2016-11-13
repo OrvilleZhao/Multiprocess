@@ -27,8 +27,8 @@ class SeatLock{
     }
 }
 class coachNum{
-    int Count;
-    int coachNum;
+   volatile int Count;
+   volatile int coachNum;
 }
 class Train{
     private volatile boolean key;
@@ -60,7 +60,7 @@ class Seat{
     private final int seatnum;
     private SeatLock[][][] CL;
     private List history;//tid历史队列
-    private volatile coachNum coachn[][];
+    private coachNum coachn[][];
     //初始化座位
     public Seat(int routenum,int coachnum,int seatnum,int stationnum){
         seat=new Train[routenum][coachnum][seatnum][stationnum];
@@ -223,9 +223,9 @@ public class TicketingDS implements TicketingSystem {
     public Ticket buyTicket(String passenger, int route, int departure, int arrival) {
         if(departure==arrival||departure>arrival) return null;
          coachNum[] array=seat.init(route);
-         for(int s=0;s<coachnum;s++){
-             System.out.println(array[s].coachNum+":"+array[s].Count);
-         }
+         //for(int s=0;s<coachnum;s++){
+          //   System.out.println(array[s].coachNum+":"+array[s].Count);
+         //}
          for(int i=0;i<coachnum;i++){
             int k=seat.write(route, array[i].coachNum, departure, arrival);
             if(k!=-1){

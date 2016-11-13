@@ -15,14 +15,14 @@ public class Test{
     /**
      * @param args the command line arguments
      */
-    private static int route=1;
-    private static int coach=5;
-    private static int seat=10;
-    private static int station=4;
+    private static int route=5;
+    private static int coach=8;
+    private static int seat=100;
+    private static int station=10;
     private static ConcurrentLinkedQueue History=new ConcurrentLinkedQueue();
     public static void main(String[] args) {
       final TicketingDS tds=new TicketingDS(route,coach,seat,station);
-      int i=5;
+      int i=1500;
       while(i-->0){
       double chance=Math.random();
       if(chance>0.7&&chance<1)
