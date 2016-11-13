@@ -61,7 +61,6 @@ class Seat{
     private SeatLock[][][] CL;
     private List history;//tid历史队列
     private volatile coachNum coachn[][];
-    private coachNum array[][];
     //初始化座位
     public Seat(int routenum,int coachnum,int seatnum,int stationnum){
         seat=new Train[routenum][coachnum][seatnum][stationnum];
@@ -168,54 +167,40 @@ class Seat{
         return true;
     }
     //初始化空余座位队列,使用快排来对车厢进行排序
-    public void init(int route){
-        array=coachn;//制作此时的记录副本
+    public coachNum[] init(int route){
+        coachNum[] array=coachn[route];//制作此时的记录副本
         int start=0;
-        int end=array[route].length-1;   
-        QuickSort(route,start,end);
-    }
-    public int SelectCoach(int route,int i){
-        if(i<array[route].length){
-            return array[route][i].coachNum;
-        }else
-            return -1;
+        int end=array.length-1;   
+        QuickSort(start,end,array);//利用快排筛选出最好的车厢数
+        return array;
     }
     //快排
-    private void QuickSort(int route, int start, int end) {
-        if(start<=end) return ;
-        if(start+1==end){
-            if(array[route][start].Count>array[route][end].Count){
-                coachNum a=new coachNum();
-                a=array[route][start];
-                array[route][start]=array[route][end];
-                array[route][end]=a;
-            }
-            return;
-        }
-        coachNum key=array[route][start];
+    private void QuickSort(int start, int end, coachNum[] array) {
+        if(start>=end) return;
+        coachNum key=array[start];
         int i=start;
         int j=end;
         while(i<j){
             while(i<j){
-                if(array[route][j].Count<key.Count){
-                    array[route][i]=array[route][j];
+                if(array[j].Count>key.Count){
+                    array[i]=array[j];
                     i++;
                     break;
                 }else
                     j--;
             }
             while(i<j){
-                if(array[route][i].Count>key.Count){
-                    array[route][j]=array[route][i];
+                if(array[i].Count<key.Count){
+                    array[j]=array[i];
                     j--;
                     break;
                 }else
                     i++;
             }
         }
-        array[route][i]=key;
-        QuickSort(route,start,i-1);
-        QuickSort(route,i+1,end);
+        array[i]=key;
+        QuickSort(start,i-1,array);
+        QuickSort(i+1,end,array);
     }
 }
 
@@ -237,9 +222,12 @@ public class TicketingDS implements TicketingSystem {
     @Override
     public Ticket buyTicket(String passenger, int route, int departure, int arrival) {
         if(departure==arrival||departure>arrival) return null;
-         seat.init(route);
+         coachNum[] array=seat.init(route);
+         for(int s=0;s<coachnum;s++){
+             System.out.println(array[s].coachNum+":"+array[s].Count);
+         }
          for(int i=0;i<coachnum;i++){
-            int k=seat.write(route, seat.SelectCoach(route, i), departure, arrival);
+            int k=seat.write(route, array[i].coachNum, departure, arrival);
             if(k!=-1){
                 Ticket t=new Ticket();
                 t.passenger=passenger;
@@ -247,7 +235,7 @@ public class TicketingDS implements TicketingSystem {
                 t.tid=current.getId();
                 t.arrival=arrival;
                 t.departure=departure;
-                t.coach=i;
+                t.coach=array[i].coachNum;
                 t.route=route;
                 t.seat=k;
                 history.offer(t.tid);
