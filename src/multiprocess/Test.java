@@ -22,7 +22,7 @@ public class Test{
     private static ConcurrentLinkedQueue History=new ConcurrentLinkedQueue();
     public static void main(String[] args) {
       final TicketingDS tds=new TicketingDS(route,coach,seat,station);
-      int i=1500;
+      int i=10000;
       while(i-->0){
       double chance=Math.random();
       if(chance>0.7&&chance<1)
