@@ -146,8 +146,14 @@ class Seat{
     public int search(int route,int coach,int departure, int arrival){
         int count=0;
         for(int i=0;i<seatnum;i++){
-            if(!seat[route][coach][i][departure].value()&&!seat[route][coach][i][arrival-1].value())
-               count++;
+            boolean k=true;
+            for(int j=departure;j<arrival;j++){
+               if(seat[route][coach][i][j].value()){
+                  k=false;
+                  break;
+               }
+            }
+            count++;
         }
         return count;
     }

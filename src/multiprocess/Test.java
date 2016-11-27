@@ -42,7 +42,7 @@ public class Test{
                   int times=10000;
                   while(times-->0){
                       double chance=Math.random();
-                     if(chance>0.7&&chance<1){
+                      if(chance>0.7&&chance<1){
                           int r=random(1,route);
                           int s1=random(1,station-1);
                           int s2=random(s1+1,station);
@@ -91,7 +91,7 @@ public class Test{
             System.out.println(k+"线程"+buySUM.get()+"次购票所花平均时间为"+avabuy+"纳秒         ");
             System.out.println(k+"线程"+inquirySUM.get()+"次查询所花平均时间为"+avainquiry+"纳秒          ");
             System.out.println(k+"线程"+refundSUM.get()+"次退票所花平均时间为"+avarefund+"纳秒        ");
-            System.out.println(k+"线程吞吐量为"+(tt*1000*1000)+"方法每秒");
+            System.out.println(k+"线程吞吐量为"+(tt*1000*1000)+"方法每秒     ");
             buyTime.set(0);
             buySUM.set(0);
             inquiryTime.set(0);
