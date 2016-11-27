@@ -5,6 +5,7 @@
  */
 package multiprocess;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 /**
@@ -15,18 +16,21 @@ public class Test{
     /**
      * @param args the command line arguments
      */
-    private static int route=5;
-    private static int coach=8;
-    private static int seat=10;
-    private static int station=10;
+    private static int route=1;
+    private static int coach=1;
+    private static int seat=1;
+    private static int station=2;
     private static ConcurrentLinkedQueue History=new ConcurrentLinkedQueue();
     public static void main(String[] args) {
       final TicketingDS tds=new TicketingDS(route,coach,seat,station);
-      for(int i=0;i<4;i++)
+      int k=4;
+      for(int i=0;i<k;i++)
       new Thread(new Runnable(){
           @Override
           public void run() {
-            while(true){
+            long StartSumTime=System.currentTimeMillis();
+            int times=10000;
+            while(times-->0){
                 double chance=Math.random();
                if(chance>0.7&&chance<1){
                     int r=random(1,route);
@@ -63,6 +67,7 @@ public class Test{
                     if(!History.isEmpty()){
                         Ticket t=(Ticket)History.poll();
                         long StartTime=System.nanoTime();
+                        if(t!=null)
                         if(tds.refundTicket(t)){
                             long EndTime=System.nanoTime();
                           System.out.println("您订购的编号为:"+t.tid+"的车票已经退订！"+
@@ -75,6 +80,10 @@ public class Test{
                     }
                }
             }
+            DecimalFormat   df=new   java.text.DecimalFormat("#.##");   
+            long EndSumTime=System.currentTimeMillis();
+            double t =10000000.0/(EndSumTime-StartSumTime==0?1:(EndSumTime-StartSumTime));
+            System.out.println("系统吞吐率为"+df.format(t)+"方法每秒");
           }
       }).start();
     } 

@@ -256,14 +256,14 @@ public class TicketingDS implements TicketingSystem {
 
     @Override
     public boolean refundTicket(Ticket ticket) { 
-        if(history.contains(ticket.tid))
-            if(seat.cancel(ticket)){
-                history.remove(ticket.tid);
-                return true;
-            }
+            if(history.contains(ticket.tid))
+                if(seat.cancel(ticket)){
+                    history.remove(ticket.tid);
+                    return true;
+                }
+                else
+                  return false;
             else
-              return false;
-        else
-            return false;
+                return false;
     } 
 }
