@@ -8,22 +8,23 @@ package multiprocess;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 /**
  *
  * @author Administrator
  */
 class SeatLock{
-    private volatile boolean flag=true;
-    public synchronized boolean Lock(){
-        if(this.flag){
-            this.flag=false;
+    private  AtomicBoolean flag=new AtomicBoolean(true);
+    public boolean Lock(){
+        if(flag.get()){
             return false;
         }else{
-            return true;
+            return flag.getAndSet(false);
         }
     } 
-    public synchronized void unLock(){
-        this.flag=true;
+    public void unLock(){
+        flag.set(true);
     }
 }
 class coachNum{
@@ -31,25 +32,20 @@ class coachNum{
    volatile int coachNum;
 }
 class Train{
-    private volatile boolean key;
-    public Train(){
-        this.key=false;
+    private AtomicBoolean key=new AtomicBoolean(false);
+    public boolean value(){
+        return  key.get();
     }
-    public synchronized boolean value(){
-        return  this.key;
-    }
-    public synchronized boolean Set(){
-        if(!this.key){
-          this.key=true;
-          return true;
+    public boolean Set(){
+        if(!key.get()){
+            return key.compareAndSet(false, true);
         }else{
             return false;
         }
     }
-    public synchronized boolean unSet(){
-        if(this.key){
-          this.key=false;
-          return true;
+    public boolean unSet(){
+        if(key.get()){
+          return key.compareAndSet(true, false);
         }else{
           return false;
         }
@@ -59,7 +55,6 @@ class Seat{
     private Train[][][][] seat;
     private final int seatnum;
     private SeatLock[][][] CL;
-    private List history;//tid历史队列
     private coachNum coachn[][];
     //初始化座位
     public Seat(int routenum,int coachnum,int seatnum,int stationnum){
@@ -93,7 +88,13 @@ class Seat{
     //售出座位
     public int write(int route,int coach,int departure, int arrival){  
            for(int i=0;i<seatnum;i++){
-               while(CL[route][coach][i].Lock()){}
+               long startTime=System.nanoTime();
+               long patient=400;
+               while(CL[route][coach][i].Lock()){
+                   if(System.nanoTime()-startTime>patient){
+                       i=(i++)%seatnum;
+                   }
+               }
                ArrayList array=new ArrayList();   
                if(departure+1!=arrival){
                     if(seat[route][coach][i][departure].Set()&&seat[route][coach][i][arrival-1].Set()){
@@ -211,6 +212,7 @@ public class TicketingDS implements TicketingSystem {
     private final int stationnum;
     private volatile long maxId=0;
     private final Seat seat;
+    private AtomicLong Id=new AtomicLong(0);
     private ConcurrentLinkedQueue history=new ConcurrentLinkedQueue();
     public TicketingDS(int routenum,int coachnum,int seatnum,int stationnum){
         this.routenum=routenum;
@@ -223,16 +225,13 @@ public class TicketingDS implements TicketingSystem {
     public Ticket buyTicket(String passenger, int route, int departure, int arrival) {
         if(departure==arrival||departure>arrival) return null;
          coachNum[] array=seat.init(route);
-         //for(int s=0;s<coachnum;s++){
-          //   System.out.println(array[s].coachNum+":"+array[s].Count);
-         //}
          for(int i=0;i<coachnum;i++){
             int k=seat.write(route, array[i].coachNum, departure, arrival);
             if(k!=-1){
                 Ticket t=new Ticket();
                 t.passenger=passenger;
                 Thread current = Thread.currentThread();  
-                t.tid=current.getId();
+                t.tid=Id.getAndIncrement();
                 t.arrival=arrival;
                 t.departure=departure;
                 t.coach=array[i].coachNum;
