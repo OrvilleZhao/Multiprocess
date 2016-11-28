@@ -31,7 +31,7 @@ public class Test{
     private static AtomicInteger refundSUM=new AtomicInteger(0);  
     public static void main(String[] args) {
       final TicketingDS tds=new TicketingDS(route,coach,seat,station);
-      for(int p=2;p<=7;p++){
+      for(int p=2;p<=8;p++){
             int k=(int)Math.pow(2, p);
             Thread[] thread=new Thread[k];
             for(int i=0;i<k;i++){
