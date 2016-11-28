@@ -88,12 +88,8 @@ class Seat{
     //售出座位
     public int write(int route,int coach,int departure, int arrival){  
            for(int i=0;i<seatnum;i++){
-               long startTime=System.nanoTime();
-               long patient=400;
                while(CL[route][coach][i].Lock()){
-                   if(System.nanoTime()-startTime>patient){
-                       i=(i++)%seatnum;
-                   }
+                       i=(i++)%seatnum;//该座位已锁立即查询下一个座位
                }
                ArrayList array=new ArrayList();   
                if(departure+1!=arrival){
@@ -233,7 +229,7 @@ public class TicketingDS implements TicketingSystem {
     @Override
     public Ticket buyTicket(String passenger, int route, int departure, int arrival) {
         if(departure==arrival||departure>arrival) return null;
-        if(Id.getAndIncrement()%(seatnum/3==0?1:seatnum/3)==0)//线程数达到座位数的一半即更新一次剩余座位排序表
+        if(Id.getAndIncrement()%(seatnum/3==0?1:seatnum/3)==0)//线程数达到座位数的三分之一即更新一次剩余座位排序表
           array=seat.init(route);
          for(int i=0;i<coachnum;i++){
             int k=seat.write(route, array[i].coachNum, departure, arrival);
