@@ -219,6 +219,7 @@ public class TicketingDS implements TicketingSystem {
     private volatile long maxId=0;
     private final Seat seat;
     private AtomicLong Id=new AtomicLong(0);
+    private volatile coachNum[] array;
     private ConcurrentLinkedQueue history=new ConcurrentLinkedQueue();
     public TicketingDS(int routenum,int coachnum,int seatnum,int stationnum){
         this.routenum=routenum;
@@ -226,11 +227,14 @@ public class TicketingDS implements TicketingSystem {
         this.seatnum=seatnum;
         this.stationnum=stationnum;
         seat=new Seat(routenum,coachnum,seatnum,stationnum);
+        for(int i=0;i<routenum;i++)
+        array=seat.init(i);
     }
     @Override
     public Ticket buyTicket(String passenger, int route, int departure, int arrival) {
         if(departure==arrival||departure>arrival) return null;
-         coachNum[] array=seat.init(route);
+        if(Id.getAndIncrement()%(seatnum/3==0?1:seatnum/3)==0)//线程数达到座位数的一半即更新一次剩余座位排序表
+          array=seat.init(route);
          for(int i=0;i<coachnum;i++){
             int k=seat.write(route, array[i].coachNum, departure, arrival);
             if(k!=-1){
