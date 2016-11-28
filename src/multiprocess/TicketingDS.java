@@ -31,7 +31,7 @@ class coachNum{
    volatile int Count;
    volatile int coachNum;
 }
-class Train{
+/*class Train{
     private AtomicBoolean key=new AtomicBoolean(false);
     public boolean value(){
         return  key.get();
@@ -50,15 +50,15 @@ class Train{
           return false;
         }
     }
-}
+}*/
 class Seat{
-    private Train[][][][] seat;
+    private boolean[][][][] seat;
     private final int seatnum;
     private SeatLock[][][] CL;
     private coachNum coachn[][];
     //初始化座位
     public Seat(int routenum,int coachnum,int seatnum,int stationnum){
-        seat=new Train[routenum][coachnum][seatnum][stationnum];
+        seat=new boolean[routenum][coachnum][seatnum][stationnum];
         CL=new SeatLock[routenum][coachnum][seatnum];
         coachn=new coachNum[routenum][coachnum];
         for(int j=0;j<routenum;j++){
@@ -78,7 +78,7 @@ class Seat{
               while(--X3>=0){
                   int X4=stationnum;
                   while(--X4>=0){
-                      seat[X1][X2][X3][X4]=new Train();
+                      seat[X1][X2][X3][X4]=true;
                   }
               }
           }
@@ -91,50 +91,19 @@ class Seat{
                while(CL[route][coach][i].Lock()){
                        i=(i++)%seatnum;//该座位已锁立即查询下一个座位
                }
-               ArrayList array=new ArrayList();   
-               if(departure+1!=arrival){
-                    if(seat[route][coach][i][departure].Set()&&seat[route][coach][i][arrival-1].Set()){
-                        coachn[route][coach].Count-=2;
-                        if(departure+1==arrival){
-                            CL[route][coach][i].unLock();
-                            return i;
-                        }
-                        else{
-                              array.add(departure);
-                              array.add(arrival-1);
-                        }
-                    }else{
-                        CL[route][coach][i].unLock();
-                        continue;
-                    }
-               }else{
-                   if(seat[route][coach][i][departure].Set()){
-                       coachn[route][coach].Count-=1;
-                       CL[route][coach][i].unLock();
-                       return i;
-                   }else{
-                       CL[route][coach][i].unLock();
-                       continue;
+               boolean victor=true;
+               for(int p=departure;p<arrival;p++)
+                   if(seat[route][coach][i][p])
+                       seat[route][coach][i][p]=false;
+                   else{
+                       victor=false;
+                       for(int s=p;s>=departure;s--)
+                           seat[route][coach][i][s]=true;
+                       break;
                    }
-               }
-               int j=0;
-               for(j=departure+1;j<arrival-1;j++){
-                   if(seat[route][coach][i][j].Set()){
-                   coachn[route][coach].Count-=1;
-                   array.add(j);
-                   }else{
-                       for(int s=0;s<array.size();s++){
-                           seat[route][coach][i][(int)array.get(s)].unSet();
-                           coachn[route][coach].Count+=1;
-                       }
-                       CL[route][coach][i].unLock();
-                       continue;
-                   }
-               }
-               if(j==arrival-1){
-                   CL[route][coach][i].unLock();
-                   return i;
-               }
+               
+               if(victor) return i;
+               else continue;
            }
           return -1;
     }
@@ -144,11 +113,12 @@ class Seat{
         for(int i=0;i<seatnum;i++){
             boolean k=true;
             for(int j=departure;j<arrival;j++){
-               if(seat[route][coach][i][j].value()){
+               if(!seat[route][coach][i][j]){
                   k=false;
                   break;
                }
             }
+            if(k)
             count++;
         }
         return count;
@@ -159,7 +129,7 @@ class Seat{
         try{
              long id=ticket.tid;
              for(int i=ticket.departure;i<ticket.arrival;i++){
-                 seat[ticket.route][ticket.coach][ticket.seat][i].unSet();
+                 seat[ticket.route][ticket.coach][ticket.seat][i]=true;
                  coachn[ticket.route][ticket.coach].Count+=1;
              }
         }catch(Exception ex){
