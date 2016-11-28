@@ -15,44 +15,24 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Administrator
  */
 class SeatLock{
-    private  AtomicBoolean flag=new AtomicBoolean(true);
+    private  AtomicBoolean flag=new AtomicBoolean(false);
     public boolean Lock(){
-        if(flag.get()){
-            return false;
+        if(!flag.get()){
+            return flag.getAndSet(true);
         }else{
-            return flag.getAndSet(false);
+            return true;
         }
     } 
     public void unLock(){
-        flag.set(true);
+        flag.set(false);
     }
 }
 class coachNum{
    volatile int Count;
    volatile int coachNum;
 }
-/*class Train{
-    private AtomicBoolean key=new AtomicBoolean(false);
-    public boolean value(){
-        return  key.get();
-    }
-    public boolean Set(){
-        if(!key.get()){
-            return key.compareAndSet(false, true);
-        }else{
-            return false;
-        }
-    }
-    public boolean unSet(){
-        if(key.get()){
-          return key.compareAndSet(true, false);
-        }else{
-          return false;
-        }
-    }
-}*/
 class Seat{
-    private boolean[][][][] seat;
+    private volatile boolean[][][][] seat;
     private final int seatnum;
     private SeatLock[][][] CL;
     private coachNum coachn[][];
@@ -88,22 +68,28 @@ class Seat{
     //售出座位
     public int write(int route,int coach,int departure, int arrival){  
            for(int i=0;i<seatnum;i++){
-               while(CL[route][coach][i].Lock()){
-                       i=(i++)%seatnum;//该座位已锁立即查询下一个座位
+               try{
+                    while(CL[route][coach][i].Lock()){
+                            i=(i++)%seatnum;//该座位已锁立即查询下一个座位
+                    }
+                    boolean victor=true;
+                    for(int p=departure;p<arrival;p++)
+                        if(seat[route][coach][i][p])
+                            seat[route][coach][i][p]=false;
+                        else{
+                            victor=false;
+                            for(int s=p-1;s>=departure;s--)
+                                seat[route][coach][i][s]=true;
+                            break;
+                        }
+
+                    if(victor) return i;
+                    else continue;
+               }catch(Exception ex){
+                  ex.printStackTrace();
+               }finally{
+                   CL[route][coach][i].unLock();
                }
-               boolean victor=true;
-               for(int p=departure;p<arrival;p++)
-                   if(seat[route][coach][i][p])
-                       seat[route][coach][i][p]=false;
-                   else{
-                       victor=false;
-                       for(int s=p;s>=departure;s--)
-                           seat[route][coach][i][s]=true;
-                       break;
-                   }
-               
-               if(victor) return i;
-               else continue;
            }
           return -1;
     }
@@ -232,14 +218,14 @@ public class TicketingDS implements TicketingSystem {
 
     @Override
     public boolean refundTicket(Ticket ticket) { 
-            if(history.contains(ticket.tid))
-                if(seat.cancel(ticket)){
-                    history.remove(ticket.tid);
-                    return true;
-                }
-                else
-                  return false;
+        if(history.contains(ticket.tid))
+            if(seat.cancel(ticket)){
+                history.remove(ticket.tid);
+                return true;
+            }
             else
-                return false;
+              return false;
+        else
+            return false;
     } 
 }
