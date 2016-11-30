@@ -83,7 +83,10 @@ class Seat{
                             break;
                         }
 
-                    if(victor) return i;
+                     if(victor){
+                        coachn[route][coach].Count-=1;
+                        return i;
+                    }
                     else continue;
                }catch(Exception ex){
                   ex.printStackTrace();
