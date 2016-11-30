@@ -70,7 +70,7 @@ class Seat{
            for(int i=0;i<seatnum;i++){
                try{
                     while(CL[route][coach][i].Lock()){
-                            i=(i++)%seatnum;//该座位已锁立即查询下一个座位
+                           // i=(i++)%seatnum;该座位已锁立即查询下一个座位
                     }
                     boolean victor=true;
                     for(int p=departure;p<arrival;p++)
