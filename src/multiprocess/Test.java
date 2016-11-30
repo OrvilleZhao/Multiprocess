@@ -32,14 +32,14 @@ public class Test{
     public static void main(String[] args) {
       final TicketingDS tds=new TicketingDS(route,coach,seat,station);
       for(int p=2;p<=8;p++){
-            int k=(int)Math.pow(2, p);
+            final int k=(int)Math.pow(2, p);
             Thread[] thread=new Thread[k];
             for(int i=0;i<k;i++){
             thread[i]=new Thread(new Runnable(){
                 @Override
                 public void run() {
                   long StartSumTime=System.currentTimeMillis();
-                  int times=10000;
+                  int times=10000/k;
                   while(times-->0){
                       double chance=Math.random();
                       if(chance>0.7&&chance<1){
